@@ -1,11 +1,535 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Hyderabad Explorer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
+<script src="script.js"></script>
 <body>
+    <!-- Splash Screen -->
+    <div id="splash-screen">
+        <div class="splash-content">
+            <div class="logo-container">
+                <img src="/api/placeholder/200/200" alt="Hyderabad Explorer Logo" class="logo">
+            </div>
+            <h1>Hyderabad Explorer</h1>
+            <p>Discover the city's hidden gems</p>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+        </div>
+    </div>
     
+    <!-- Authentication Screen -->
+    <div id="auth-screen" class="hidden">
+        <div class="auth-container">
+            <div class="auth-header">
+                <img src="/api/placeholder/150/150" alt="Hyderabad Explorer Logo" class="logo-small">
+                <h2>Welcome Explorer!</h2>
+                <p>Sign in to continue your adventure</p>
+            </div>
+            
+            <div class="auth-tabs">
+                <button class="tab-btn active" data-tab="signin">Sign In</button>
+                <button class="tab-btn" data-tab="signup">Sign Up</button>
+            </div>
+            
+            <div class="auth-forms">
+                <form id="signin-form" class="auth-form">
+                    <div class="form-group">
+                        <label for="signin-email">Email</label>
+                        <input type="email" id="signin-email" placeholder="Enter your email">
+                    </div>
+                    <div class="form-group">
+                        <label for="signin-password">Password</label>
+                        <input type="password" id="signin-password" placeholder="Enter your password">
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Sign In</button>
+                    </div>
+                    <div class="form-footer">
+                        <a href="#" class="forgot-password">Forgot Password?</a>
+                    </div>
+                </form>
+                
+                <form id="signup-form" class="auth-form hidden">
+                    <div class="form-group">
+                        <label for="signup-name">Full Name</label>
+                        <input type="text" id="signup-name" placeholder="Enter your full name">
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-email">Email</label>
+                        <input type="email" id="signup-email" placeholder="Enter your email">
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password">Password</label>
+                        <input type="password" id="signup-password" placeholder="Create a password">
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Create Account</button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="social-login">
+                <p>Or continue with</p>
+                <div class="social-buttons">
+                    <button class="btn btn-social btn-google">
+                        <i class="fab fa-google"></i>
+                    </button>
+                    <button class="btn btn-social btn-facebook">
+                        <i class="fab fa-facebook"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Map Screen -->
+    <div id="map-screen" class="hidden">
+        <header class="app-header">
+            <div class="header-left">
+                <button class="btn-menu" id="open-sidebar">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h3>Hyderabad Explorer</h3>
+            </div>
+            <div class="header-right">
+                <span class="points-badge">
+                    <i class="fas fa-star"></i>
+                    <span id="user-points">2450</span>
+                </span>
+                <span class="league-badge">
+                    <i class="fas fa-trophy"></i>
+                    <span id="user-league">Gold</span>
+                </span>
+            </div>
+        </header>
+        
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <button class="btn-close" id="close-sidebar">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div class="user-profile">
+                    <img src="/api/placeholder/80/80" alt="User Avatar" class="user-avatar">
+                    <div class="user-info">
+                        <h4 id="user-name">Rahul Singh</h4>
+                        <p id="user-email">rahul@example.com</p>
+                    </div>
+                </div>
+            </div>
+            <div class="sidebar-menu">
+                <ul>
+                    <li><a href="#" class="active"><i class="fas fa-map-marked-alt"></i> Explore Map</a></li>
+                    <li><a href="#"><i class="fas fa-history"></i> History</a></li>
+                    <li><a href="#"><i class="fas fa-medal"></i> Achievements</a></li>
+                    <li><a href="#"><i class="fas fa-trophy"></i> Leaderboard</a></li>
+                    <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+                    <li><a href="#" id="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="map-container">
+            <div id="map-overlay">
+                <div class="grid-container" id="grid-container">
+                    <!-- Grid cells will be dynamically added here -->
+                </div>
+            </div>
+            <div class="map-controls">
+                <button class="btn btn-explore" id="btn-explore">
+                    Let's Explore
+                    <i class="fas fa-location-arrow"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Categories Screen -->
+    <div id="categories-screen" class="hidden">
+        <header class="app-header">
+            <div class="header-left">
+                <button class="btn-back" id="back-to-map">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <h3>Explore Places</h3>
+            </div>
+            <div class="header-right">
+                <span class="points-badge">
+                    <i class="fas fa-star"></i>
+                    <span id="user-points-categories">2450</span>
+                </span>
+            </div>
+        </header>
+        
+        <div class="search-container">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search for places in Hyderabad" id="search-input">
+            </div>
+        </div>
+        
+        <div class="categories-container">
+            <h4>Categories</h4>
+            <div class="category-cards">
+                <div class="category-card" data-category="historical">
+                    <div class="category-icon">
+                        <i class="fas fa-landmark"></i>
+                    </div>
+                    <span class="category-name">Historical</span>
+                </div>
+                <div class="category-card" data-category="parks">
+                    <div class="category-icon">
+                        <i class="fas fa-tree"></i>
+                    </div>
+                    <span class="category-name">Parks</span>
+                </div>
+                <div class="category-card" data-category="museums">
+                    <div class="category-icon">
+                        <i class="fas fa-university"></i>
+                    </div>
+                    <span class="category-name">Museums</span>
+                </div>
+                <div class="category-card" data-category="restaurants">
+                    <div class="category-icon">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <span class="category-name">Restaurants</span>
+                </div>
+                <div class="category-card" data-category="shopping">
+                    <div class="category-icon">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <span class="category-name">Shopping</span>
+                </div>
+                <div class="category-card" data-category="cafes">
+                    <div class="category-icon">
+                        <i class="fas fa-coffee"></i>
+                    </div>
+                    <span class="category-name">Cafes</span>
+                </div>
+                <div class="category-card" data-category="religious">
+                    <div class="category-icon">
+                        <i class="fas fa-pray"></i>
+                    </div>
+                    <span class="category-name">Religious</span>
+                </div>
+                <div class="category-card" data-category="lakes">
+                    <div class="category-icon">
+                        <i class="fas fa-water"></i>
+                    </div>
+                    <span class="category-name">Lakes</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="places-container">
+            <div class="section-header">
+                <h4>Popular Places</h4>
+                <a href="#" class="view-all">View All</a>
+            </div>
+            <div class="places-list" id="popular-places">
+                <div class="place-card" data-place-id="1">
+                    <div class="place-image">
+                        <img src="/api/placeholder/400/200" alt="Charminar">
+                        <span class="place-points">+100 pts</span>
+                    </div>
+                    <div class="place-info">
+                        <h5>Charminar</h5>
+                        <div class="place-meta">
+                            <span class="place-category"><i class="fas fa-landmark"></i> Historical</span>
+                            <span class="place-rating"><i class="fas fa-star"></i> 4.8</span>
+                        </div>
+                        <p class="place-desc">Iconic monument and mosque with four minarets in Hyderabad's old city.</p>
+                    </div>
+                </div>
+                <div class="place-card" data-place-id="2">
+                    <div class="place-image">
+                        <img src="/api/placeholder/400/200" alt="Golconda Fort">
+                        <span class="place-points">+120 pts</span>
+                    </div>
+                    <div class="place-info">
+                        <h5>Golconda Fort</h5>
+                        <div class="place-meta">
+                            <span class="place-category"><i class="fas fa-landmark"></i> Historical</span>
+                            <span class="place-rating"><i class="fas fa-star"></i> 4.7</span>
+                        </div>
+                        <p class="place-desc">Medieval fort and former diamond trading center known for impressive acoustics.</p>
+                    </div>
+                </div>
+                <div class="place-card" data-place-id="3">
+                    <div class="place-image">
+                        <img src="/api/placeholder/400/200" alt="Hussain Sagar Lake">
+                        <span class="place-points">+50 pts</span>
+                    </div>
+                    <div class="place-info">
+                        <h5>Hussain Sagar Lake</h5>
+                        <div class="place-meta">
+                            <span class="place-category"><i class="fas fa-water"></i> Lakes</span>
+                            <span class="place-rating"><i class="fas fa-star"></i> 4.5</span>
+                        </div>
+                        <p class="place-desc">Heart-shaped lake with giant Buddha statue and boating activities.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section-header">
+                <h4>Nearby Places</h4>
+                <a href="#" class="view-all">View All</a>
+            </div>
+            <div class="places-list" id="nearby-places">
+                <!-- Will be populated dynamically based on user location -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Place Details Screen -->
+    <div id="place-details-screen" class="hidden">
+        <div class="place-header">
+            <button class="btn-back" id="back-to-categories">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <button class="btn-favorite">
+                <i class="far fa-heart"></i>
+            </button>
+        </div>
+        
+        <div class="place-gallery">
+            <img src="/api/placeholder/400/300" alt="Place Image" id="place-main-image">
+            <div class="place-thumbnails">
+                <img src="/api/placeholder/100/100" alt="Thumbnail 1" class="thumbnail active">
+                <img src="/api/placeholder/100/100" alt="Thumbnail 2" class="thumbnail">
+                <img src="/api/placeholder/100/100" alt="Thumbnail 3" class="thumbnail">
+                <img src="/api/placeholder/100/100" alt="Thumbnail 4" class="thumbnail">
+            </div>
+        </div>
+        
+        <div class="place-details-content">
+            <div class="place-header-info">
+                <h3 id="place-name">Charminar</h3>
+                <div class="place-meta-details">
+                    <span class="place-category" id="place-category"><i class="fas fa-landmark"></i> Historical</span>
+                    <span class="place-rating" id="place-rating"><i class="fas fa-star"></i> 4.8 (2.3k reviews)</span>
+                </div>
+            </div>
+            
+            <div class="place-action-buttons">
+                <button class="action-btn" id="btn-directions">
+                    <i class="fas fa-directions"></i>
+                    <span>Directions</span>
+                </button>
+                <button class="action-btn" id="btn-visit">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Check In</span>
+                </button>
+                <button class="action-btn" id="btn-share">
+                    <i class="fas fa-share-alt"></i>
+                    <span>Share</span>
+                </button>
+            </div>
+            
+            <div class="place-description">
+                <h4>About</h4>
+                <p id="place-description">
+                    The Charminar, constructed in 1591, is a monument and mosque located in Hyderabad, Telangana, India. The landmark has become a global icon of Hyderabad, listed among the most recognized structures in India. The Charminar is situated on the east bank of Musi river with Laad Bazaar to its west, Makkah Masjid to its southwest and the Osmania hospital to its northeast.
+                </p>
+            </div>
+            
+            <div class="place-highlights">
+                <h4>Highlights</h4>
+                <ul id="place-highlights">
+                    <li><i class="fas fa-clock"></i> Built in 1591 by Muhammad Quli Qutb Shah</li>
+                    <li><i class="fas fa-ruler-combined"></i> 56 meters tall with four ornate minarets</li>
+                    <li><i class="fas fa-info-circle"></i> Symbol of Hyderabad, located in the heart of old city</li>
+                    <li><i class="fas fa-shopping-bag"></i> Famous Laad Bazaar market nearby</li>
+                </ul>
+            </div>
+            
+            <div class="place-recommendations">
+                <h4>Recommendations</h4>
+                <div class="recommendation-tabs">
+                    <button class="rec-tab active" data-tab="food">Food</button>
+                    <button class="rec-tab" data-tab="shopping">Shopping</button>
+                    <button class="rec-tab" data-tab="activities">Activities</button>
+                </div>
+                
+                <div class="recommendation-content active" id="food-recommendations">
+                    <div class="recommendation-card">
+                        <img src="/api/placeholder/80/80" alt="Food Item">
+                        <div class="recommendation-info">
+                            <h5>Hyderabadi Biryani</h5>
+                            <p>Try authentic Hyderabadi biryani at Shah Ghouse, just 10 mins away</p>
+                        </div>
+                    </div>
+                    <div class="recommendation-card">
+                        <img src="/api/placeholder/80/80" alt="Food Item">
+                        <div class="recommendation-info">
+                            <h5>Irani Chai</h5>
+                            <p>Visit Nimrah Cafe for famous Irani Chai and Osmania biscuits</p>
+                        </div>
+                    </div>
+                    <div class="recommendation-card">
+                        <img src="/api/placeholder/80/80" alt="Food Item">
+                        <div class="recommendation-info">
+                            <h5>Qubani Ka Meetha</h5>
+                            <p>Traditional apricot dessert at Paradise restaurant</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="recommendation-content" id="shopping-recommendations">
+                    <div class="recommendation-card">
+                        <img src="/api/placeholder/80/80" alt="Shopping Item">
+                        <div class="recommendation-info">
+                            <h5>Laad Bazaar</h5>
+                            <p>Famous for bangles, especially lac bangles with stone work</p>
+                        </div>
+                    </div>
+                    <div class="recommendation-card">
+                        <img src="/api/placeholder/80/80" alt="Shopping Item">
+                        <div class="recommendation-info">
+                            <h5>Pearls</h5>
+                            <p>Hyderabad is known for pearls - shop at Mangatrai Pearls</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="recommendation-content" id="activities-recommendations">
+                    <div class="recommendation-card">
+                        <img src="/api/placeholder/80/80" alt="Activity">
+                        <div class="recommendation-info">
+                            <h5>Night Tour</h5>
+                            <p>Experience Charminar illuminated at night with guided tour</p>
+                        </div>
+                    </div>
+                    <div class="recommendation-card">
+                        <img src="/api/placeholder/80/80" alt="Activity">
+                        <div class="recommendation-info">
+                            <h5>Photography</h5>
+                            <p>Best spot for photos is from the eastern side at sunset</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="place-location">
+                <h4>Location</h4>
+                <div class="map-placeholder" id="place-map">
+                    <img src="/api/placeholder/400/200" alt="Map">
+                </div>
+                <p class="address" id="place-address">Charminar Rd, Char Kaman, Ghansi Bazaar, Hyderabad, Telangana 500002</p>
+            </div>
+            
+            <div class="place-reviews">
+                <div class="reviews-header">
+                    <h4>Reviews</h4>
+                    <a href="#" class="view-all">View All (2.3k)</a>
+                </div>
+                <div class="review-list" id="place-reviews">
+                    <div class="review-card">
+                        <div class="reviewer">
+                            <img src="/api/placeholder/40/40" alt="Reviewer" class="reviewer-img">
+                            <div class="reviewer-info">
+                                <h5>Anjali Reddy</h5>
+                                <div class="rating">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="review-text">Beautiful historical monument! I recommend visiting early morning to avoid crowds. The view from the top is worth the climb.</p>
+                    </div>
+                    <div class="review-card">
+                        <div class="reviewer">
+                            <img src="/api/placeholder/40/40" alt="Reviewer" class="reviewer-img">
+                            <div class="reviewer-info">
+                                <h5>Rajesh Kumar</h5>
+                                <div class="rating">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="far fa-star"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="review-text">Great place to visit, but very crowded on weekends. The nearby market is excellent for shopping, especially bangles and pearls.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Check-in Modal -->
+    <div id="checkin-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4>Checking In</h4>
+                <button class="btn-close" id="close-checkin-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="checking-animation">
+                    <div class="pulse-animation"></div>
+                    <i class="fas fa-map-marker-alt location-pin"></i>
+                </div>
+                <p>Verifying your location...</p>
+                <div class="progress-bar">
+                    <div class="progress"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Points Earned Modal -->
+    <div id="points-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4>Congratulations!</h4>
+                <button class="btn-close" id="close-points-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="points-animation">
+                    <i class="fas fa-star"></i>
+                    <span class="points-earned">+100</span>
+                    <span class="points-text">points earned</span>
+                </div>
+                <p class="congrats-message">You've successfully checked in at Charminar!</p>
+                <div class="achievements-unlocked">
+                    <h5>Achievement Unlocked:</h5>
+                    <div class="achievement-badge">
+                        <i class="fas fa-medal"></i>
+                        <span>Historical Explorer</span>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-primary" id="share-achievement">
+                        <i class="fas fa-share-alt"></i>
+                        Share
+                    </button>
+                    <button class="btn btn-secondary" id="close-achievement">
+                        Continue
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Overlay -->
+    <div id="overlay" class="hidden"></div>
+    
+    <!-- Scripts will be added later -->
 </body>
 </html>
