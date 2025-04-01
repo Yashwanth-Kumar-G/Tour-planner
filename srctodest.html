@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>City Route Planner</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 2.2rem;
+            font-weight: 700;
+        }
+        
+        .control-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .location-input {
+            flex: 1;
+            min-width: 250px;
+            padding: 12px 15px;
+            font-size: 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .location-input:focus {
+            border-color: var(--accent-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(72, 149, 239, 0.2);
+        }
+        
+        #find-routes {
+            padding: 12px 25px;
+            font-size: 16px;
+            font-weight: 600;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        #find-routes:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        #map-container {
+            position: relative;
+            margin-bottom: 30px;
+            height: 500px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+        
+        #transport-options {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .transport-btn {
+            padding: 10px 15px;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        
+        .transport-btn.active {
+            border-color: var(--primary-color);
+            background-color: #f0f7ff;
+        }
+        
+        .transport-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .route-info {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .route-details {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        @media (max-width: 768px) {
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .location-input {
+                width: 100%;
+            }
+            
+            #map-container {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>City Route Planner</h1>
+            <p>Find optimal routes between locations using different transport modes</p>
+        </div>
+    </header>
+    
+    <main class="container">
+        <section class="control-panel">
+            <div class="input-group">
+                <input type="text" id="source-input" class="location-input" placeholder="Enter source location">
+                <input type="text" id="destination-input" class="location-input" placeholder="Enter destination location">
+                <button id="find-routes">Find Routes</button>
+            </div>
+            
+            <div id="transport-options">
+                <button class="transport-btn" data-mode="driving">
+                    🚗 Car
+                </button>
+                <button class="transport-btn" data-mode="walking">
+                    🚶 Walking
+                </button>
+                <button class="transport-btn" data-mode="public-transport">
+                    🚍 Public Transport
+                </button>
+                <button class="transport-btn" data-mode="bicycle">
+                    🚲 Bicycle
+                </button>
+            </div>
+        </section>
+        
+        <section id="map-container">
+            <div id="map"></div>
+        </section>
+        
+        <section class="route-info">
+            <h3>Route Information</h3>
+            <div class="route-details" id="route-details">
+                Select source and destination to see route information
+            </div>
+        </section>
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    <script>
+        // Initialize map
+        var map = L.map('map').setView([17.3850, 78.4867], 13);
+        var routeControl;
+        var currentTransportMode = null;
+        
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+        
+        // Transport mode colors
+        var transportColors = {
+            'driving': '#e63946',
+            'walking': '#457b9d',
+            'public-transport': '#7209b7',
+            'bicycle': '#2a9d8f'
+        };
+        
+        // Transport mode icons
+        var transportIcons = {
+            'driving': '🚗',
+            'walking': '🚶',
+            'public-transport': '🚍',
+            'bicycle': '🚲'
+        };
+        
+        // Geocode function to convert address to coordinates
+        function geocode(address, callback) {
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length > 0) {
+                        callback({
+                            lat: parseFloat(data[0].lat),
+                            lng: parseFloat(data[0].lon)
+                        });
+                    } else {
+                        alert("Location not found. Please try a different address.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Geocoding error:", error);
+                    alert("Error finding location. Please try again.");
+                });
+        }
+        
+        // Calculate route between two points
+        function calculateRoute(source, destination, mode) {
+            // Remove existing route if any
+            if (routeControl) {
+                map.removeControl(routeControl);
+            }
+            
+            // Set route color based on transport mode
+            var routeColor = transportColors[mode] || '#4361ee';
+            
+            // Create new route
+            routeControl = L.Routing.control({
+                waypoints: [
+                    L.latLng(source.lat, source.lng),
+                    L.latLng(destination.lat, destination.lng)
+                ],
+                routeWhileDragging: true,
+                showAlternatives: false,
+                lineOptions: {
+                    styles: [{color: routeColor, opacity: 0.8, weight: 6}]
+                },
+                createMarker: function(i, waypoint, n) {
+                    // Custom markers for start and end points
+                    return L.marker(waypoint.latLng, {
+                        icon: L.divIcon({
+                            className: 'route-marker',
+                            html: i === 0 ? '🏁' : '📍',
+                            iconSize: [30, 30]
+                        })
+                    }).bindPopup(i === 0 ? "Start: " + document.getElementById('source-input').value : 
+                                  "End: " + document.getElementById('destination-input').value);
+                },
+                formatter: new L.Routing.Formatter({
+                    language: 'en',
+                    units: 'metric'
+                })
+            }).addTo(map);
+            
+            // Update route information when route is found
+            routeControl.on('routesfound', function(e) {
+                var routes = e.routes;
+                var summary = routes[0].summary;
+                
+                // Calculate estimated time and convert to hours/minutes
+                var totalHours = Math.floor(summary.totalTime / 3600);
+                var totalMinutes = Math.round((summary.totalTime % 3600) / 60);
+                
+                var timeText = '';
+                if (totalHours > 0) {
+                    timeText += `${totalHours} hr${totalHours > 1 ? 's' : ''} `;
+                }
+                timeText += `${totalMinutes} min`;
+                
+                // Calculate cost estimate based on mode
+                var cost = estimateCost(mode, summary.totalDistance);
+                
+                // Update route details
+                document.getElementById('route-details').innerHTML = `
+                    <h4>${transportIcons[mode]} ${mode.charAt(0).toUpperCase() + mode.slice(1).replace('-', ' ')} Route</h4>
+                    <p><strong>Distance:</strong> ${(summary.totalDistance / 1000).toFixed(1)} km</p>
+                    <p><strong>Estimated Time:</strong> ${timeText}</p>
+                    <p><strong>Estimated Cost:</strong> ₹${cost}</p>
+                    <p><strong>Directions:</strong></p>
+                    <ol>
+                        ${routes[0].instructions.map(i => `<li>${i.text}</li>`).join('')}
+                    </ol>
+                `;
+            });
+            
+            // Zoom to show the route
+            setTimeout(function() {
+                var bounds = new L.LatLngBounds([
+                    [source.lat, source.lng],
+                    [destination.lat, destination.lng]
+                ]);
+                map.fitBounds(bounds.pad(0.2));
+            }, 500);
+        }
+        
+        // Estimate cost based on transport mode and distance
+        function estimateCost(mode, distanceMeters) {
+            var distanceKm = distanceMeters / 1000;
+            var cost = 0;
+            
+            switch(mode) {
+                case 'driving':
+                    // Car: ₹10/km (fuel + maintenance)
+                    cost = distanceKm * 10;
+                    break;
+                case 'public-transport':
+                    // Public transport: ₹2/km with ₹10 base fare
+                    cost = 10 + (distanceKm * 2);
+                    break;
+                case 'bicycle':
+                    // Bicycle: ₹5 base (rental if applicable)
+                    cost = 5;
+                    break;
+                case 'walking':
+                    // Walking: free
+                    cost = 0;
+                    break;
+                default:
+                    cost = distanceKm * 5;
+            }
+            
+            return Math.round(cost);
+        }
+        
+        // Handle transport mode selection
+        document.querySelectorAll('.transport-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Remove active class from all buttons
+                document.querySelectorAll('.transport-btn').forEach(b => {
+                    b.classList.remove('active');
+                });
+                
+                // Add active class to clicked button
+                this.classList.add('active');
+                
+                // Get source and destination values
+                var source = document.getElementById('source-input').value;
+                var destination = document.getElementById('destination-input').value;
+                
+                if (source && destination) {
+                    currentTransportMode = this.dataset.mode;
+                    
+                    // Geocode both locations and calculate route
+                    geocode(source, function(sourceCoords) {
+                        geocode(destination, function(destCoords) {
+                            calculateRoute(sourceCoords, destCoords, currentTransportMode);
+                        });
+                    });
+                }
+            });
+        });
+        
+        // Handle find routes button click
+        document.getElementById('find-routes').addEventListener('click', function() {
+            var source = document.getElementById('source-input').value;
+            var destination = document.getElementById('destination-input').value;
+            
+            if (!source || !destination) {
+                alert("Please enter both source and destination locations");
+                return;
+            }
+            
+            // If a transport mode is already selected, use that
+            if (currentTransportMode) {
+                geocode(source, function(sourceCoords) {
+                    geocode(destination, function(destCoords) {
+                        calculateRoute(sourceCoords, destCoords, currentTransportMode);
+                    });
+                });
+            } else {
+                // Default to driving if no mode selected
+                currentTransportMode = 'driving';
+                document.querySelector(`.transport-btn[data-mode="driving"]`).classList.add('active');
+                
+                geocode(source, function(sourceCoords) {
+                    geocode(destination, function(destCoords) {
+                        calculateRoute(sourceCoords, destCoords, 'driving');
+                    });
+                });
+            }
+        });
+        
+        // Initialize with first transport mode selected
+        document.querySelector('.transport-btn').classList.add('active');
+        currentTransportMode = 'driving';
+    </script>
+</body>
+</html>
