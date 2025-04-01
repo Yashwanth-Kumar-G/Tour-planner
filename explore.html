@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Tour Planner with Transport</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #4cc9f0;
+            --warning-color: #f72585;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 2.2rem;
+            font-weight: 700;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-top: 8px;
+        }
+        
+        .control-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        #budget-input {
+            padding: 12px 15px;
+            font-size: 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            width: 200px;
+            transition: all 0.3s;
+        }
+        
+        #budget-input:focus {
+            border-color: var(--accent-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(72, 149, 239, 0.2);
+        }
+        
+        #plan-btn {
+            padding: 12px 25px;
+            font-size: 16px;
+            font-weight: 600;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        #plan-btn:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        #plan-btn:active {
+            transform: translateY(0);
+        }
+        
+        .priority-section {
+            margin-top: 25px;
+        }
+        
+        .priority-section h3 {
+            text-align: center;
+            margin-bottom: 15px;
+            color: var(--dark-color);
+            font-size: 1.2rem;
+        }
+        
+        .priority-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+        }
+        
+        .priority-box {
+            background: white;
+            border-radius: 8px;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e9ecef;
+            transition: all 0.2s;
+        }
+        
+        .priority-box:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .priority-box label {
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        
+        .priority-input {
+            width: 50px;
+            padding: 6px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        #map-container {
+            position: relative;
+            margin-bottom: 30px;
+        }
+        
+        #map {
+            height: 500px;
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 1;
+        }
+        
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+            display: none;
+            font-weight: 500;
+            text-align: center;
+        }
+        
+        #results {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            display: none;
+        }
+        
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .results-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark-color);
+            margin: 0;
+        }
+        
+        .total-budget {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .category-card {
+            margin-bottom: 25px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e9ecef;
+        }
+        
+        .category-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .category-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .category-budget {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        
+        .category-content {
+            padding: 15px 20px;
+            background: white;
+        }
+        
+        .places-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .place-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #f1f3f5;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .place-item:last-child {
+            border-bottom: none;
+        }
+        
+        .place-name {
+            font-weight: 500;
+        }
+        
+        .budget-suggestion {
+            margin-top: 15px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            color: #495057;
+        }
+        
+        .budget-suggestion strong {
+            color: var(--primary-color);
+        }
+        
+        .transport-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f1faee;
+            border-radius: 10px;
+        }
+        
+        .transport-options {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .transport-card {
+            flex: 1;
+            min-width: 200px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .transport-card h4 {
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .transport-cost {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 10px 0;
+        }
+        
+        .transport-details {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        .route-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .route-btn:hover {
+            background: var(--primary-color);
+        }
+        
+        @media (max-width: 768px) {
+            .input-group {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            #budget-input {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .priority-box {
+                flex: 1 1 120px;
+                justify-content: center;
+            }
+            
+            #map {
+                height: 400px;
+            }
+            
+            .transport-options {
+                flex-direction: column;
+            }
+        }
+        
+        /* Animation for loading */
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Smart Tour Planner with Transport</h1>
+            <p class="subtitle">Plan your perfect trip with budget and transportation estimates</p>
+        </div>
+    </header>
+    
+    <main class="container">
+        <section class="control-panel">
+            <div class="input-group">
+                <input type="number" id="budget-input" placeholder="Enter your budget (₹)" min="100">
+                <button id="plan-btn">Generate Tour Plan</button>
+            </div>
+            
+            <div class="priority-section">
+                <h3>Set Your Priorities (0-5)</h3>
+                <div class="priority-container">
+                    <div class="priority-box">
+                        <label>🍽️ Restaurants</label>
+                        <input type="number" class="priority-input" id="priority-restaurant" min="0" max="5" value="3">
+                    </div>
+                    <div class="priority-box">
+                        <label>☕ Cafes</label>
+                        <input type="number" class="priority-input" id="priority-cafe" min="0" max="5" value="2">
+                    </div>
+                    <div class="priority-box">
+                        <label>🏛️ Museums</label>
+                        <input type="number" class="priority-input" id="priority-museum" min="0" max="5" value="4">
+                    </div>
+                    <div class="priority-box">
+                        <label>🏰 Historic Sites</label>
+                        <input type="number" class="priority-input" id="priority-historic" min="0" max="5" value="4">
+                    </div>
+                    <div class="priority-box">
+                        <label>🎡 Attractions</label>
+                        <input type="number" class="priority-input" id="priority-attraction" min="0" max="5" value="3">
+                    </div>
+                    <div class="priority-box">
+                        <label>🌳 Parks</label>
+                        <input type="number" class="priority-input" id="priority-park" min="0" max="5" value="2">
+                    </div>
+                    <div class="priority-box">
+                        <label>🛍️ Malls</label>
+                        <input type="number" class="priority-input" id="priority-mall" min="0" max="5" value="1">
+                    </div>
+                    <div class="priority-box">
+                        <label>🎭 Theaters</label>
+                        <input type="number" class="priority-input" id="priority-theater" min="0" max="5" value="1">
+                    </div>
+                    <div class="priority-box">
+                        <label>🛕 Temples</label>
+                        <input type="number" class="priority-input" id="priority-temple" min="0" max="5" value="2">
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="map-container">
+            <div id="map"></div>
+            <div id="loading">
+                <div class="pulse">Searching for places...</div>
+            </div>
+        </section>
+        
+        <section id="results"></section>
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    <script>
+        // Initialize map centered on a default location (Hyderabad)
+        var map = L.map('map').setView([17.3850, 78.4867], 13);
+        var selectedLat, selectedLon;
+        var markersGroup = L.layerGroup().addTo(map);
+        var routeControl;
+        var waypoints = [];
+
+        // Add OpenStreetMap tiles with a lighter variant
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Function to fetch places from Overpass API
+        function fetchPlaces(lat, lon, budget) {
+            document.getElementById("loading").style.display = "block";
+            document.getElementById("results").style.display = "none";
+
+            // Overpass API query to get various points of interest
+            var query = `
+                [out:json];
+                (
+                    node["amenity"="restaurant"](around:2500, ${lat}, ${lon});
+                    node["amenity"="cafe"](around:2500, ${lat}, ${lon});
+                    node["tourism"="museum"](around:2000, ${lat}, ${lon});
+                    node["historic"](around:2000, ${lat}, ${lon});
+                    node["tourism"="attraction"](around:2000, ${lat}, ${lon});
+                    node["leisure"="park"](around:3000, ${lat}, ${lon});
+                    node["shop"="mall"](around:3000, ${lat}, ${lon});
+                    node["amenity"="theatre"](around:3000, ${lat}, ${lon});
+                    node["amenity"="place_of_worship"](around:3000, ${lat}, ${lon});
+                );
+                out;
+            `;
+            var url = "https://overpass-api.de/api/interpreter?data=" + encodeURIComponent(query);
+
+            // Clear existing markers and routes
+            markersGroup.clearLayers();
+            if (routeControl) {
+                map.removeControl(routeControl);
+            }
+            waypoints = [];
+
+            // Add marker for selected location (starting point)
+            var startPoint = L.marker([lat, lon], {
+                icon: L.divIcon({
+                    className: 'selected-location-marker',
+                    html: '🏁',
+                    iconSize: [30, 30]
+                })
+            }).addTo(markersGroup).bindPopup("Starting Point").openPopup();
+            
+            waypoints.push(L.latLng(lat, lon));
+
+            // Fetch data from Overpass API
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("loading").style.display = "none";
+
+                    if (data.elements.length === 0) {
+                        alert("No places found nearby! Try selecting a different location in a more urban area.");
+                        return;
+                    }
+
+                    // Categorize places
+                    var categorizedPlaces = {
+                        "restaurant": [],
+                        "cafe": [],
+                        "museum": [],
+                        "historic": [],
+                        "attraction": [],
+                        "park": [],
+                        "mall": [],
+                        "theater": [],
+                        "temple": []
+                    };
+
+                    // Process each place from the API response
+                    data.elements.forEach(place => {
+                        if (place.lat && place.lon) {
+                            var name = place.tags.name || "Unnamed Place";
+                            var type = "";
+                            
+                            // Determine the type of place
+                            if (place.tags.amenity === "restaurant") type = "restaurant";
+                            else if (place.tags.amenity === "cafe") type = "cafe";
+                            else if (place.tags.tourism === "museum") type = "museum";
+                            else if (place.tags.historic) type = "historic";
+                            else if (place.tags.tourism === "attraction") type = "attraction";
+                            else if (place.tags.leisure === "park") type = "park";
+                            else if (place.tags.shop === "mall") type = "mall";
+                            else if (place.tags.amenity === "theatre") type = "theater";
+                            else if (place.tags.amenity === "place_of_worship") type = "temple";
+                            
+                            // Add to appropriate category if recognized
+                            if (type && categorizedPlaces[type]) {
+                                categorizedPlaces[type].push({
+                                    name: name,
+                                    type: type,
+                                    lat: place.lat,
+                                    lon: place.lon
+                                });
+                                
+                                // Add marker to map with appropriate color
+                                var markerColor = getMarkerColor(type);
+                                var marker = L.marker([place.lat, place.lon], {
+                                    icon: L.divIcon({
+                                        className: 'custom-marker',
+                                        html: `<div style="background: ${markerColor}">${getCategoryIcon(type)}</div>`,
+                                        iconSize: [30, 30]
+                                    })
+                                }).bindPopup(`<b>${name}</b><br>Type: ${type}`);
+                                markersGroup.addLayer(marker);
+                            }
+                        }
+                    });
+
+                    // Allocate budget based on priorities
+                    allocateBudget(budget, categorizedPlaces);
+                })
+                .catch(error => {
+                    console.error("Error fetching data:", error);
+                    document.getElementById("loading").innerHTML = "<div class='pulse'>Failed to load data. Please try again later.</div>";
+                });
+        }
+
+        // Get user priorities from input fields
+        function getUserPriorities() {
+            return {
+                "restaurant": parseInt(document.getElementById("priority-restaurant").value) || 0,
+                "cafe": parseInt(document.getElementById("priority-cafe").value) || 0,
+                "museum": parseInt(document.getElementById("priority-museum").value) || 0,
+                "historic": parseInt(document.getElementById("priority-historic").value) || 0,
+                "attraction": parseInt(document.getElementById("priority-attraction").value) || 0,
+                "park": parseInt(document.getElementById("priority-park").value) || 0,
+                "mall": parseInt(document.getElementById("priority-mall").value) || 0,
+                "theater": parseInt(document.getElementById("priority-theater").value) || 0,
+                "temple": parseInt(document.getElementById("priority-temple").value) || 0
+            };
+        }
+
+        // Allocate budget to different categories based on priorities
+        function allocateBudget(totalBudget, places) {
+            var userPriorities = getUserPriorities();
+            var activePriorities = {};
+            var totalPriority = 0;
+
+            // Calculate total priority and filter out categories with no places or zero priority
+            for (var category in userPriorities) {
+                if (places[category].length > 0 && userPriorities[category] > 0) {
+                    activePriorities[category] = userPriorities[category];
+                    totalPriority += userPriorities[category];
+                }
+            }
+
+            // If no valid categories found
+            if (totalPriority === 0) {
+                document.getElementById("results").innerHTML = `
+                    <div class="no-results">
+                        <h3>No matching places found</h3>
+                        <p>Adjust your priorities or select a different location with more points of interest.</p>
+                    </div>`;
+                document.getElementById("results").style.display = "block";
+                return;
+            }
+
+            // Allocate budget proportionally to each category
+            var budgetAllocation = {};
+            for (var category in activePriorities) {
+                budgetAllocation[category] = (activePriorities[category] / totalPriority) * totalBudget;
+            }
+
+            // Display results
+            displayResults(places, budgetAllocation);
+        }
+
+        // Display the results with budget allocation
+        function displayResults(places, budgetAllocation) {
+            var totalBudget = Object.values(budgetAllocation).reduce((a, b) => a + b, 0);
+            var selectedPlaces = [];
+            
+            var resultsHTML = `
+                <div class="results-header">
+                    <h2 class="results-title">Your Personalized Tour Plan</h2>
+                    <div class="total-budget">Total Budget: ₹${totalBudget.toFixed(0)}</div>
+                </div>
+            `;
+
+            // For each category with allocated budget
+            for (var category in budgetAllocation) {
+                if (budgetAllocation[category] > 0 && places[category].length > 0) {
+                    var categoryBudget = budgetAllocation[category];
+                    var categoryIcon = getCategoryIcon(category);
+                    var markerColor = getMarkerColor(category);
+                    
+                    // Get top places for this category
+                    var topPlaces = places[category].slice(0, 3); // Show top 3 places per category
+                    selectedPlaces = selectedPlaces.concat(topPlaces);
+                    
+                    resultsHTML += `
+                        <div class="category-card">
+                            <div class="category-header" style="background: ${markerColor}">
+                                <div class="category-name">${categoryIcon} ${category.charAt(0).toUpperCase() + category.slice(1)}</div>
+                                <div class="category-budget">₹${categoryBudget.toFixed(0)}</div>
+                            </div>
+                            <div class="category-content">
+                                <h4>Recommended Places:</h4>
+                                <ul class="places-list">`;
+                    
+                    // Show top places in this category
+                    for (var i = 0; i < topPlaces.length; i++) {
+                        var place = topPlaces[i];
+                        resultsHTML += `
+                            <li class="place-item">
+                                <span class="place-name">${place.name}</span>
+                            </li>`;
+                        
+                        // Add to waypoints for routing
+                        waypoints.push(L.latLng(place.lat, place.lon));
+                    }
+                    
+                    resultsHTML += `</ul>`;
+                    
+                    // Add suggestions for how to spend the budget in this category
+                    resultsHTML += `<div class="budget-suggestion">`;
+                    if (category === "restaurant") {
+                        resultsHTML += `With <strong>₹${categoryBudget.toFixed(0)}</strong>, you could enjoy approximately <strong>${Math.floor(categoryBudget/300)} meals</strong> at these restaurants (assuming ₹300 per meal).`;
+                    } else if (category === "cafe") {
+                        resultsHTML += `With <strong>₹${categoryBudget.toFixed(0)}</strong>, you could have <strong>${Math.floor(categoryBudget/150)} coffee breaks</strong> at these cafes (assuming ₹150 per visit).`;
+                    } else if (category === "museum" || category === "historic" || category === "attraction") {
+                        resultsHTML += `With <strong>₹${categoryBudget.toFixed(0)}</strong>, you could visit <strong>${Math.floor(categoryBudget/100)} attractions</strong> (average ₹100 per entry fee).`;
+                    } else if (category === "park") {
+                        resultsHTML += `With <strong>₹${categoryBudget.toFixed(0)}</strong>, you could enjoy <strong>${Math.floor(categoryBudget/50)} park visits</strong> (for snacks/drinks).`;
+                    } else if (category === "mall") {
+                        resultsHTML += `With <strong>₹${categoryBudget.toFixed(0)}</strong>, you could shop or dine at this mall for <strong>${Math.floor(categoryBudget/200)} visits</strong>.`;
+                    } else if (category === "theater") {
+                        resultsHTML += `With <strong>₹${categoryBudget.toFixed(0)}</strong>, you could watch <strong>${Math.floor(categoryBudget/250)} shows</strong> (average ticket price ₹250).`;
+                    } else if (category === "temple") {
+                        resultsHTML += `With <strong>₹${categoryBudget.toFixed(0)}</strong>, you could make <strong>${Math.floor(categoryBudget/100)} visits</strong> (for offerings/donations).`;
+                    } else {
+                        resultsHTML += `Suggested activities in this category based on your budget allocation.`;
+                    }
+                    resultsHTML += `</div></div>`;
+                }
+            }
+
+            // Add transportation section
+            resultsHTML += `
+                <div class="transport-section">
+                    <h3>Transportation Options</h3>
+                    <p>Estimated costs for visiting all recommended places:</p>
+                    <div class="transport-options">
+                        <div class="transport-card">
+                            <h4>🚍 Public Bus</h4>
+                            <div class="transport-cost">₹${calculateTransportCost('bus', waypoints).toFixed(0)}</div>
+                            <div class="transport-details">Most economical option with extensive coverage</div>
+                            <button class="route-btn" onclick="showRoute('bus')">Show Bus Route</button>
+                        </div>
+                        <div class="transport-card">
+                            <h4>🚇 Metro</h4>
+                            <div class="transport-cost">₹${calculateTransportCost('metro', waypoints).toFixed(0)}</div>
+                            <div class="transport-details">Fast and efficient where available</div>
+                            <button class="route-btn" onclick="showRoute('metro')">Show Metro Route</button>
+                        </div>
+                        <div class="transport-card">
+                            <h4>🚖 Auto Rickshaw</h4>
+                            <div class="transport-cost">₹${calculateTransportCost('auto', waypoints).toFixed(0)}</div>
+                            <div class="transport-details">Door-to-door convenience</div>
+                            <button class="route-btn" onclick="showRoute('auto')">Show Auto Route</button>
+                        </div>
+                        <div class="transport-card">
+                            <h4>🚗 Taxi/Cab</h4>
+                            <div class="transport-cost">₹${calculateTransportCost('taxi', waypoints).toFixed(0)}</div>
+                            <div class="transport-details">Most comfortable option</div>
+                            <button class="route-btn" onclick="showRoute('taxi')">Show Taxi Route</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById("results").innerHTML = resultsHTML;
+            document.getElementById("results").style.display = "block";
+            
+            // Zoom to show all markers
+            if (markersGroup.getLayers().length > 0) {
+                map.fitBounds(markersGroup.getBounds().pad(0.2));
+            }
+        }
+
+        // Calculate transport cost based on mode and waypoints
+        function calculateTransportCost(mode, waypoints) {
+            if (waypoints.length < 2) return 0;
+            
+            // Estimate total distance (simplified calculation)
+            var totalDistance = 0;
+            for (var i = 1; i < waypoints.length; i++) {
+                totalDistance += waypoints[i-1].distanceTo(waypoints[i]);
+            }
+            totalDistance = totalDistance / 1000; // convert to km
+            
+            // Cost estimates per km (simplified)
+            var costPerKm = {
+                'bus': 2,
+                'metro': 3,
+                'auto': 10,
+                'taxi': 15
+            };
+            
+            // Base fare + distance fare
+            var baseFare = {
+                'bus': 5,
+                'metro': 10,
+                'auto': 25,
+                'taxi': 40
+            };
+            
+            return baseFare[mode] + (totalDistance * costPerKm[mode]);
+        }
+
+        // Show route on map based on transport mode
+        function showRoute(mode) {
+            if (waypoints.length < 2) return;
+            
+            // Remove existing route if any
+            if (routeControl) {
+                map.removeControl(routeControl);
+            }
+            
+            // Set route color based on transport mode
+            var routeColor = {
+                'bus': '#2b6cb0',
+                'metro': '#d53f8c',
+                'auto': '#dd6b20',
+                'taxi': '#2f855a'
+            }[mode];
+            
+            // Create new route
+            routeControl = L.Routing.control({
+                waypoints: waypoints,
+                routeWhileDragging: true,
+                showAlternatives: false,
+                lineOptions: {
+                    styles: [{color: routeColor, opacity: 0.7, weight: 5}]
+                },
+                createMarker: function() { return null; } // Don't create additional markers
+            }).addTo(map);
+            
+            // Zoom to show the route
+            setTimeout(function() {
+                var bounds = new L.LatLngBounds(waypoints);
+                map.fitBounds(bounds.pad(0.2));
+            }, 500);
+        }
+
+        // Helper function to get icons for categories
+        function getCategoryIcon(category) {
+            const icons = {
+                "restaurant": "🍽️",
+                "cafe": "☕",
+                "museum": "🏛️",
+                "historic": "🏰",
+                "attraction": "🎡",
+                "park": "🌳",
+                "mall": "🛍️",
+                "theater": "🎭",
+                "temple": "🛕"
+            };
+            return icons[category] || "📍";
+        }
+        
+        // Helper function to get marker colors for categories
+        function getMarkerColor(category) {
+            const colors = {
+                "restaurant": "#e63946",
+                "cafe": "#a8dadc",
+                "museum": "#457b9d",
+                "historic": "#1d3557",
+                "attraction": "#ffbe0b",
+                "park": "#2a9d8f",
+                "mall": "#7209b7",
+                "theater": "#f72585",
+                "temple": "#f77f00"
+            };
+            return colors[category] || "#4361ee";
+        }
+
+        // Handle map clicks to select location
+        map.on('click', function(e) {
+            selectedLat = e.latlng.lat;
+            selectedLon = e.latlng.lng;
+            
+            // Clear existing markers and routes
+            markersGroup.clearLayers();
+            if (routeControl) {
+                map.removeControl(routeControl);
+            }
+            waypoints = [];
+            
+            // Add marker for selected location
+            L.marker([selectedLat, selectedLon], {
+                icon: L.divIcon({
+                    className: 'selected-location-marker',
+                    html: '🏁',
+                    iconSize: [30, 30]
+                })
+            }).addTo(markersGroup).bindPopup("Starting Point").openPopup();
+            
+            document.getElementById("loading").innerHTML = "<div class='pulse'>Location selected! Enter your budget and click 'Generate Tour Plan'</div>";
+            document.getElementById("loading").style.display = "block";
+            document.getElementById("results").style.display = "none";
+        });
+
+        // Handle button click to plan trip
+        document.getElementById("plan-btn").addEventListener("click", function() {
+            var budget = parseFloat(document.getElementById("budget-input").value);
+            
+            if (!budget || budget <= 0) {
+                alert("Please enter a valid budget amount (greater than ₹100).");
+                return;
+            }
+            
+            if (budget < 100) {
+                alert("Please enter a budget of at least ₹100 for meaningful results.");
+                return;
+            }
+            
+            if (!selectedLat || !selectedLon) {
+                alert("Please select a location on the map first by clicking your desired area.");
+                return;
+            }
+            
+            document.getElementById("loading").innerHTML = "<div class='pulse'>Finding the best places for your tour...</div>";
+            fetchPlaces(selectedLat, selectedLon, budget);
+        });
+
+        // Initial message
+        document.getElementById("loading").innerHTML = "<div class='pulse'>Click on the map to select your starting location</div>";
+        document.getElementById("loading").style.display = "block";
+    </script>
+</body>
+</html>
