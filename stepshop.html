@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Step Shop - Avatar Store</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6C63FF;
+      --secondary: #4D44DB;
+      --accent: #FF6584;
+      --light: #F8F9FA;
+      --dark: #212529;
+      --success: #28A745;
+      --warning: #FFC107;
+      --info: #17A2B8;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+      min-height: 100vh;
+      padding: 2rem;
+      color: var(--dark);
+      position: relative;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    
+    h1 {
+      font-size: 2.5rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    
+    .subtitle {
+      color: #6c757d;
+      font-weight: 400;
+    }
+    
+    .user-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    
+    .current-avatar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .avatar-display {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--primary);
+      transition: all 0.3s ease;
+    }
+    
+    .avatar-info {
+      text-align: left;
+    }
+    
+    .avatar-name {
+      font-weight: 600;
+      font-size: 1.2rem;
+    }
+    
+    .avatar-status {
+      color: var(--success);
+      font-size: 0.9rem;
+    }
+    
+    .step-balance {
+      background: var(--primary);
+      color: white;
+      padding: 0.8rem 1.5rem;
+      border-radius: 50px;
+      font-weight: 600;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 8px rgba(108, 99, 255, 0.2);
+    }
+    
+    .shop-section {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    
+    .section-title {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      color: var(--dark);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .shop-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1.5rem;
+    }
+    
+    .avatar-card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+    
+    .avatar-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
+    
+    .avatar-card.selected {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.3);
+    }
+    
+    .avatar-img-container {
+      position: relative;
+      height: 180px;
+      overflow: hidden;
+    }
+    
+    .avatar-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+    
+    .avatar-card:hover .avatar-img {
+      transform: scale(1.05);
+    }
+    
+    .avatar-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: var(--accent);
+      color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: 50px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    
+    .avatar-details {
+      padding: 1rem;
+    }
+    
+    .avatar-name {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .avatar-cost {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      color: var(--primary);
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    
+    .btn {
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+      width: 100%;
+    }
+    
+    .btn-buy {
+      background: var(--success);
+      color: white;
+    }
+    
+    .btn-buy:hover {
+      background: #218838;
+    }
+    
+    .btn-owned {
+      background: #e9ecef;
+      color: #6c757d;
+      cursor: default;
+    }
+    
+    .btn-select {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .btn-select:hover {
+      background: var(--secondary);
+    }
+    
+    .step-counter {
+      margin-top: 2rem;
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    
+    .progress-container {
+      margin-top: 1rem;
+      height: 10px;
+      background: #e9ecef;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      background: var(--primary);
+      border-radius: 5px;
+      transition: width 0.5s ease;
+    }
+    
+    .step-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .btn-step-action {
+      flex: 1;
+      padding: 0.75rem;
+      border-radius: 8px;
+      background: white;
+      border: 2px solid var(--primary);
+      color: var(--primary);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .btn-step-action:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    /* Reset Button Styles */
+    #reset-data {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 12px 18px;
+      background: #ff4444;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    #reset-data:hover {
+      background: #cc0000;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    }
+
+    #reset-data:active {
+      transform: translateY(0);
+    }
+    
+    @media (max-width: 768px) {
+      .shop-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      }
+      
+      .user-section {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+      }
+      
+      .current-avatar {
+        flex-direction: column;
+        text-align: center;
+      }
+      
+      .step-balance {
+        width: 100%;
+        justify-content: center;
+      }
+
+      #reset-data {
+        bottom: 10px;
+        right: 10px;
+        padding: 10px 15px;
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🏃‍♂️ Step Shop</h1>
+      <p class="subtitle">Exchange your steps for awesome avatars</p>
+    </header>
+    
+    <section class="user-section">
+      <div class="current-avatar">
+        <img id="current-avatar-img" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Current Avatar" class="avatar-display">
+        <div class="avatar-info">
+          <div id="current-avatar-name" class="avatar-name">Default Avatar</div>
+          <div id="current-avatar-status" class="avatar-status">Equipped</div>
+        </div>
+      </div>
+      <div class="step-balance">
+        <span>👟</span>
+        <span id="step-balance">12,345</span> steps
+      </div>
+    </section>
+    
+    <section class="shop-section">
+      <h2 class="section-title">🛍️ Avatar Store</h2>
+      <div class="shop-grid" id="shop-container">
+        <!-- Avatars will be inserted here by JavaScript -->
+      </div>
+    </section>
+    
+    <section class="step-counter">
+      <h2 class="section-title">👣 Step Tracker</h2>
+      <div id="step-progress-text">You've walked 12,345 steps today (65% of daily goal)</div>
+      <div class="progress-container">
+        <div class="progress-bar" id="step-progress-bar" style="width: 65%"></div>
+      </div>
+      <div class="step-actions">
+        <button class="btn-step-action" id="sync-steps">🔄 Sync Steps</button>
+        <button class="btn-step-action" id="view-history">📊 View History</button>
+      </div>
+    </section>
+
+    <!-- Reset Button -->
+    <button id="reset-data">🔄 Reset All Data</button>
+  </div>
+
+  <script>
+    // Enhanced avatar data with categories and rarity
+    const avatars = [
+      { 
+        id: 'ninja', 
+        name: 'Stealth Ninja', 
+        cost: 3000, 
+        img: 'https://cdn-icons-png.flaticon.com/512/2232/2232688.png',
+        category: 'Adventure',
+        rarity: 'Rare'
+      },
+      { 
+        id: 'robot', 
+        name: 'Robo Champ', 
+        cost: 5000, 
+        img: 'https://cdn-icons-png.flaticon.com/512/3161/3161837.png',
+        category: 'Tech',
+        rarity: 'Epic'
+      },
+      { 
+        id: 'wizard', 
+        name: 'Mystic Wizard', 
+        cost: 4000, 
+        img: 'https://cdn-icons-png.flaticon.com/512/2232/2232689.png',
+        category: 'Fantasy',
+        rarity: 'Rare'
+      },
+      { 
+        id: 'astronaut', 
+        name: 'Space Explorer', 
+        cost: 7000, 
+        img: 'https://cdn-icons-png.flaticon.com/512/2232/2232695.png',
+        category: 'Space',
+        rarity: 'Legendary'
+      },
+      { 
+        id: 'catgirl', 
+        name: 'Cyber Catgirl', 
+        cost: 6000, 
+        img: 'https://cdn-icons-png.flaticon.com/512/4333/4333609.png',
+        category: 'Anime',
+        rarity: 'Epic'
+      },
+      { 
+        id: 'viking', 
+        name: 'Nordic Warrior', 
+        cost: 4500, 
+        img: 'https://cdn-icons-png.flaticon.com/512/2232/2232698.png',
+        category: 'Historical',
+        rarity: 'Rare'
+      },
+      { 
+        id: 'dino', 
+        name: 'Dino Rider', 
+        cost: 5500, 
+        img: 'https://cdn-icons-png.flaticon.com/512/4333/4333637.png',
+        category: 'Prehistoric',
+        rarity: 'Epic'
+      },
+      { 
+        id: 'cyberpunk', 
+        name: 'Neon Runner', 
+        cost: 8000, 
+        img: 'https://cdn-icons-png.flaticon.com/512/4333/4333607.png',
+        category: 'Cyberpunk',
+        rarity: 'Legendary'
+      }
+    ];
+
+    // Default user data
+    const defaultUserData = {
+      steps: 12345,
+      dailyGoal: 10000,
+      ownedAvatars: [],
+      selectedAvatar: null,
+      stepHistory: []
+    };
+
+    // Load user data from localStorage or use defaults
+    let userData = JSON.parse(localStorage.getItem('stepShopUser')) || {...defaultUserData};
+
+    // Reset all data function
+    function resetAllData() {
+      if (confirm('Are you sure you want to reset ALL data? This will:\n\n- Reset your step count\n- Remove all purchased avatars\n- Clear your history\n\nThis action cannot be undone!')) {
+        // Clear localStorage
+        localStorage.clear();
+        
+        // PROPERLY reset to default data - this was the missing piece
+        userData = {
+          steps: 12345,
+          dailyGoal: 10000,
+          ownedAvatars: [], // Now properly resetting this array
+          selectedAvatar: null, // And this value
+          stepHistory: [] // And this array
+        };
+        
+        // Save and update UI
+        saveUserData();
+        updateUI();
+        
+        alert('All data has been reset to default values!');
+      }
+    }
+
+    // Update UI with current data
+    function updateUI() {
+      // Update step balance
+      document.getElementById('step-balance').textContent = userData.steps.toLocaleString();
+      
+      // Update current avatar display
+      const currentAvatar = avatars.find(a => a.id === userData.selectedAvatar) || {
+        id: 'default',
+        name: 'Default Avatar',
+        img: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'
+      };
+      
+      document.getElementById('current-avatar-img').src = currentAvatar.img;
+      document.getElementById('current-avatar-name').textContent = currentAvatar.name;
+      document.getElementById('current-avatar-status').textContent = 
+        userData.selectedAvatar ? 'Equipped' : 'Default';
+      
+      // Update progress
+      const progressPercent = Math.min(100, (userData.steps / userData.dailyGoal) * 100);
+      document.getElementById('step-progress-bar').style.width = `${progressPercent}%`;
+      document.getElementById('step-progress-text').textContent = 
+        `You've walked ${userData.steps.toLocaleString()} steps today (${Math.round(progressPercent)}% of daily goal)`;
+      
+      // Render shop items
+      renderShop();
+    }
+
+    // Render the avatar shop
+    function renderShop() {
+      const container = document.getElementById('shop-container');
+      container.innerHTML = '';
+      
+      avatars.forEach(avatar => {
+        const isOwned = userData.ownedAvatars.includes(avatar.id);
+        const isSelected = userData.selectedAvatar === avatar.id;
+        
+        const card = document.createElement('div');
+        card.className = `avatar-card ${isSelected ? 'selected' : ''}`;
+        
+        card.innerHTML = `
+          <div class="avatar-img-container">
+            <img src="${avatar.img}" alt="${avatar.name}" class="avatar-img">
+            ${avatar.rarity === 'Legendary' ? '<span class="avatar-badge">⭐ Legendary</span>' : 
+              avatar.rarity === 'Epic' ? '<span class="avatar-badge">✨ Epic</span>' : 
+              '<span class="avatar-badge">🔼 Rare</span>'}
+          </div>
+          <div class="avatar-details">
+            <div class="avatar-name" title="${avatar.name}">${avatar.name}</div>
+            <div class="avatar-cost">👟 ${avatar.cost.toLocaleString()} steps</div>
+            <button class="btn ${isOwned ? (isSelected ? 'btn-owned' : 'btn-select') : 'btn-buy'}" 
+              data-id="${avatar.id}" ${isOwned && isSelected ? 'disabled' : ''}>
+              ${isOwned ? (isSelected ? 'Equipped' : 'Equip') : 'Buy'}
+            </button>
+          </div>
+        `;
+        
+        container.appendChild(card);
+      });
+      
+      // Add event listeners to buttons
+      document.querySelectorAll('.btn-buy').forEach(btn => {
+        btn.addEventListener('click', () => buyAvatar(btn.dataset.id));
+      });
+      
+      document.querySelectorAll('.btn-select').forEach(btn => {
+        btn.addEventListener('click', () => selectAvatar(btn.dataset.id));
+      });
+    }
+
+    // Buy an avatar
+    function buyAvatar(avatarId) {
+      const avatar = avatars.find(a => a.id === avatarId);
+      if (!avatar) return;
+      
+      if (userData.steps >= avatar.cost) {
+        userData.steps -= avatar.cost;
+        userData.ownedAvatars.push(avatarId);
+        userData.selectedAvatar = avatarId;
+        
+        // Add to step history
+        userData.stepHistory.push({
+          date: new Date().toISOString(),
+          type: 'purchase',
+          avatarId: avatarId,
+          stepsSpent: avatar.cost
+        });
+        
+        saveUserData();
+        updateUI();
+        
+        // Show success message
+        alert(`Congratulations! You've unlocked the ${avatar.name} avatar!`);
+      } else {
+        alert(`You need ${(avatar.cost - userData.steps).toLocaleString()} more steps to buy this avatar.`);
+      }
+    }
+
+    // Select an avatar
+    function selectAvatar(avatarId) {
+      if (userData.ownedAvatars.includes(avatarId)) {
+        userData.selectedAvatar = avatarId;
+        saveUserData();
+        updateUI();
+      }
+    }
+
+    // Save user data to localStorage
+    function saveUserData() {
+      localStorage.setItem('stepShopUser', JSON.stringify(userData));
+    }
+
+    // Simulate step syncing
+    document.getElementById('sync-steps').addEventListener('click', () => {
+      // Simulate getting new steps (random between 500-2000)
+      const newSteps = Math.floor(Math.random() * 1500) + 500;
+      userData.steps += newSteps;
+      
+      // Add to step history
+      userData.stepHistory.push({
+        date: new Date().toISOString(),
+        type: 'earned',
+        stepsEarned: newSteps,
+        source: 'step counter sync'
+      });
+      
+      saveUserData();
+      updateUI();
+      
+      alert(`Synced! You earned ${newSteps.toLocaleString()} new steps!`);
+    });
+
+    // View step history
+    document.getElementById('view-history').addEventListener('click', () => {
+      if (userData.stepHistory.length === 0) {
+        alert('No step history available yet.');
+        return;
+      }
+      
+      let historyText = 'Your Step History:\n\n';
+      userData.stepHistory.forEach(entry => {
+        const date = new Date(entry.date).toLocaleString();
+        if (entry.type === 'earned') {
+          historyText += `📈 ${date}: +${entry.stepsEarned.toLocaleString()} steps (${entry.source})\n`;
+        } else {
+          const avatar = avatars.find(a => a.id === entry.avatarId);
+          historyText += `🛒 ${date}: Purchased ${avatar?.name || 'avatar'} for ${entry.stepsSpent.toLocaleString()} steps\n`;
+        }
+      });
+      
+      alert(historyText);
+    });
+
+    // Add event listener to reset button
+    document.getElementById('reset-data').addEventListener('click', resetAllData);
+
+    // Initialize the app
+    updateUI();
+  </script>
+</body>
+</html>
